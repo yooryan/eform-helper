@@ -242,6 +242,13 @@
                 </div>
             </div>
             <div class="setting-item">
+                <div class="setting-label">🌐 目标网址</div>
+                <input type="url" id="target-url" placeholder="留空使用默认网址" style="width: 100%; padding: 10px; border: none; border-radius: 8px; font-size: 14px; background: rgba(255, 255, 255, 0.9); color: #333;">
+                <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">
+                    💡 默认：https://eform.cefs.gov.hk/form/td0038/tc/
+                </div>
+            </div>
+            <div class="setting-item">
                 <div class="setting-label">🔔 打开方式</div>
                 <select id="open-mode" style="width: 100%; padding: 10px; border: none; border-radius: 8px; font-size: 16px; background: rgba(255, 255, 255, 0.9); color: #333;">
                     <option value="current">当前标签页打开（推荐）</option>
@@ -279,8 +286,8 @@
     </div>
 
     <script>
-        // 配置
-        const TARGET_URL = 'https://tdform.queue-it.net/afterevent.aspx?c=tdform&e=td0038prod20260126&q=e4e494e4-e7bb-48a4-86a7-5fd2b99dadd7&t=https%3A%2F%2Feform.cefs.gov.hk%2Fform%2Ftd0038%2Ftc%2F&cid=zh-HK';
+        // 配置 - 使用目标页面 URL（永久有效，自动跳转到当天的 Queue-it）
+        const DEFAULT_TARGET_URL = 'https://eform.cefs.gov.hk/form/td0038/tc/';
         
         // 全局变量
         let isRunning = false;
@@ -301,6 +308,7 @@
         const targetMinuteInput = document.getElementById('target-minute');
         const targetSecondInput = document.getElementById('target-second');
         const openModeSelect = document.getElementById('open-mode');
+        const targetUrlInput = document.getElementById('target-url');
         
         // 工具函数
         function getCurrentTime() {
@@ -394,8 +402,14 @@
             }
         }
         
+        function getTargetUrl() {
+            const customUrl = targetUrlInput.value.trim();
+            return customUrl || DEFAULT_TARGET_URL;
+        }
+        
         function refreshPage() {
             const openMode = openModeSelect.value;
+            const targetUrl = getTargetUrl();
             
             addLog('🎯 到达目标时间！正在打开网页...');
             updateStatus('🎯 正在打开网页...', 'danger');
@@ -406,21 +420,21 @@
             // 根据选择的打开方式
             if (openMode === 'alert') {
                 // 弹窗提醒后打开
-                const confirmed = confirm('🎯 时间到！\n\n点击"确定"立即打开网页进入预排队！\n\n记住：\n1. 进入后等待倒计时\n2. 7:00 会随机化\n3. 保持页面打开\n4. 不要刷新');
+                const confirmed = confirm('🎯 时间到！\n\n点击"确定"立即打开网页进入预排队！\n\n记住：\n1. 进入后等待倒计时\n2. 保持页面打开\n3. 不要刷新');
                 if (confirmed) {
-                    window.location.href = TARGET_URL;
+                    window.location.href = targetUrl;
                 }
             } else if (openMode === 'new') {
                 // 新标签页打开
-                const newWindow = window.open(TARGET_URL, '_blank');
+                const newWindow = window.open(targetUrl, '_blank');
                 if (!newWindow) {
                     // 如果被拦截，提示用户
                     alert('⚠️ 弹窗被拦截！\n\n请点击"确定"在当前页面打开');
-                    window.location.href = TARGET_URL;
+                    window.location.href = targetUrl;
                 }
             } else {
                 // 当前标签页打开（默认，推荐）
-                window.location.href = TARGET_URL;
+                window.location.href = targetUrl;
             }
         }
         
@@ -543,8 +557,9 @@
         }
         
         function testRefresh() {
+            const targetUrl = getTargetUrl();
             addLog('🧪 立即打开网页...');
-            window.open(TARGET_URL, '_blank');
+            window.open(targetUrl, '_blank');
         }
         
         function testCountdown() {
